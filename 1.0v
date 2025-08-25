@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fondo Estrellado DeepStick</title>
+    <style>
+        /* Estilos base */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        /* Contenedor principal */
+        .container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Coloca el fondo detrás de todo */
+        }
+        
+        /* Canvas para el fondo estrellado */
+        #sky {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Texto DeepStick */
+        .site-title {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 2;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-weight: 900;
+            font-size: 5rem;
+            color: white;
+            -webkit-text-stroke: 2px black;
+            text-shadow: 
+                0 0 10px red,
+                0 0 20px blue,
+                0 0 40px red,
+                0 0 60px blue;
+            animation: flame 1.5s infinite alternate;
+            pointer-events: none;
+        }
+        
+        @keyframes flame {
+            0% { 
+                text-shadow:
+                    0 0 10px red,
+                    0 0 20px blue,
+                    0 0 40px red,
+                    0 0 60px blue; 
+            }
+            100% { 
+                text-shadow:
+                    0 0 15px orange,
+                    0 0 25px deepskyblue,
+                    0 0 50px red,
+                    0 0 80px blue; 
+            }
+        }
+        
+        /* Botón de ejemplo */
+        .floating-button {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .floating-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(to right, #ff4b2b, #ff416c);
+        }
+        
+        /* Mensaje instructivo */
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+            font-size: 14px;
+            z-index: 90;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 3rem;
+            }
+            
+            .floating-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 14px 26px;
+                font-size: 16px;
+            }
+            
+            .instructions {
+                bottom: 80px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Contenedor del fondo -->
+    <div class="container">
+        <canvas id="sky"></canvas>
+        <div class="site-title">DeepStick</div>
+    </div>
+    
+    <!-- Botón flotante -->
+    <button class="floating-button" onclick="alert('¡Botón funcional!')">Mi Botón</button>
+    
+    <!-- Instrucciones -->
+    <div class="instructions">
+        <strong>Para usar en Google Sites:</strong> Inserta este código como HTML embebido y colócalo en una sección completa.
+    </div>
+
+    <script>
+        // ————————————————————————————————————————————————
+        // Código del cielo estrellado con estrellas fugaces
+        // ————————————————————————————————————————————————
+        const CONFIG = {
+            starLayers: [
+                { countPerMP: 120, size: [0.6, 1.0], speed: 0.02, twinkle: [0.2, 0.7] },
+                { countPerMP: 70,  size: [0.9, 1.6], speed: 0.05, twinkle: [0.3, 0.9] },
+                { countPerMP: 35,  size: [1.2, 2.2], speed: 0.09, twinkle: [0.5, 1.0] },
+            ],
+            meteor: {
+                ratePerMin: 18,
+                speedRange: [650, 1200],
+                lengthRange: [160, 320],
+                angleRange: [-18, -32],
+                thickness: [2, 3.2],
+                glow: 0.5,
+                tailParticles: 90,
+                tailLife: [260, 520],
+            },
+            trail: {
+                colors: [
+                    { r: 255, g: 200, b: 50 },
+                    { r: 255, g: 120, b: 30 },
+                    { r: 255, g: 70,  b: 20 },
+                ]
+            },
+            interaction: {
+                parallax: 18
+            }
+        };
+
+        const canvas = document.getElementById('sky');
+        const ctx = canvas.getContext('2d');
+
+        let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        let W = 0, H = 0, areaMP = 0;
+
+        const rnd = (min, max) => Math.random() * (max - min) + min;
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const deg2rad = deg => deg * Math.PI / 180;
+
+        const mouse = { x: 0, y: 0, px: 0, py: 0, has: false };
+
+        function resize() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            W = Math.floor(vw * DPR);
+            H = Math.floor(vh * DPR);
+            canvas.width = W;
+            canvas.height = H;
+            canvas.style.width = vw + 'px';
+            canvas.style.height = vh + 'px';
+            areaMP = (W * H) / 1e6;
+            rebuildStars();
+        }
+
+        window.addEventListener('resize', () => {
+            DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+            resize();
+        });
+
+        class Star {
+            constructor(layer) {
+                const [sMin, sMax] = layer.size;
+                this.size = rnd(sMin, sMax) * DPR;
+                this.x = Math.random() * W;
+                this.y = Math.random() * H;
+                this.baseAlpha = rnd(layer.twinkle[0], layer.twinkle[1]);
+                this.twSpeed = rnd(0.6, 1.8) * (0.6 + this.size / (sMax * DPR));
+                this.offset = Math.random() * 1000;
+                this.layer = layer;
+            }
+            step(t, parallaxX, parallaxY) {
+                const s = this.layer.speed;
+                this.x -= s * parallaxX * 0.8;
+                this.y -= s * parallaxY * 0.8;
+                if (this.x < 0) this.x += W; else if (this.x > W) this.x -= W;
+                if (this.y < 0) this.y += H; else if (this.y > H) this.y -= H;
+                const tw = (Math.sin((t * this.twSpeed + this.offset)) + 1) * 0.5;
+                this.alpha = clamp(this.baseAlpha * (0.6 + 0.4 * tw), 0, 1);
+            }
+            draw(ctx) {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        let stars = [];
+        function rebuildStars() {
+            stars = [];
+            CONFIG.starLayers.forEach(layer => {
+                const n = Math.round(layer.countPerMP * Math.max(0.6, areaMP));
+                for (let i = 0; i < n; i++) stars.push(new Star(layer));
+            });
+        }
+
+        class Particle {
+            constructor(x, y, vx, vy, life, size, color) {
+                this.x = x; this.y = y;
+                this.vx = vx; this.vy = vy;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.color = color;
+            }
+            step(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.vx *= 0.985;
+                this.vy += 50 * dt;
+                this.life -= dt * 1000;
+            }
+            draw(ctx) {
+                const a = clamp(this.life / this.maxLife, 0, 1);
+                ctx.globalAlpha = a;
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * a, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Meteor {
+            constructor() {
+                const [angMin, angMax] = CONFIG.meteor.angleRange;
+                const angle = deg2rad(rnd(angMax, angMin));
+                const speed = rnd(...CONFIG.meteor.speedRange) * DPR;
+                const len = rnd(...CONFIG.meteor.lengthRange) * DPR;
+                const thick = rnd(...CONFIG.meteor.thickness) * DPR;
+                const margin = Math.max(W, H) * 0.2;
+                const startX = W + margin;
+                const startY = rnd(-margin, H * 0.7);
+                this.x = startX; this.y = startY;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.len = len;
+                this.thick = thick;
+                this.alive = true;
+                this.glow = CONFIG.meteor.glow;
+                this.tail = [];
+                this.spawn = performance.now();
+            }
+            step(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                const count = Math.min(4, Math.floor(CONFIG.meteor.tailParticles / 60));
+                for (let i = 0; i < count; i++) {
+                    const t = i / count;
+                    const px = this.x - this.vx * t * 0.02;
+                    const py = this.y - this.vy * t * 0.02;
+                    const s = rnd(1.2, 2.6) * DPR;
+                    const color = CONFIG.trail.colors[Math.floor(rnd(0, CONFIG.trail.colors.length))];
+                    const life = rnd(...CONFIG.meteor.tailLife);
+                    const pvx = -this.vx * rnd(0.002, 0.006) + rnd(-10, 10);
+                    const pvy = -this.vy * rnd(0.002, 0.006) + rnd(-10, 10);
+                    this.tail.push(new Particle(px, py, pvx, pvy, life, s, color));
+                }
+                this.tail = this.tail.filter(p => (p.life > 0));
+                this.tail.forEach(p => p.step(dt));
+                if (this.x + this.len < -200 || this.y - this.len > H + 200) this.alive = false;
+            }
+            draw(ctx) {
+                this.tail.forEach(p => p.draw(ctx));
+                const ang = Math.atan2(this.vy, this.vx);
+                const x2 = this.x - Math.cos(ang) * this.len;
+                const y2 = this.y - Math.sin(ang) * this.len;
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = this.thick;
+                const grad = ctx.createLinearGradient(this.x, this.y, x2, y2);
+                grad.addColorStop(0, 'rgba(255,255,255,1)');
+                grad.addColorStop(0.2, 'rgba(255,220,120,0.95)');
+                grad.addColorStop(1, 'rgba(255,120,30,0)');
+                ctx.strokeStyle = grad;
+                ctx.shadowBlur = 20 * this.glow * DPR;
+                ctx.shadowColor = 'rgba(255,180,80,0.8)';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        let meteors = [];
+        let lastT = performance.now();
+
+        function scheduleMeteors(dt) {
+            const rate = CONFIG.meteor.ratePerMin / 60;
+            const expected = rate * dt;
+            if (Math.random() < expected) meteors.push(new Meteor());
+            if (meteors.length > 8) meteors = meteors.slice(-8);
+        }
+
+        function loop(now) {
+            let dt = (now - lastT) / 1000;
+            dt = Math.min(dt, 0.033);
+            lastT = now;
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, W, H);
+
+            const pX = (mouse.x - W * 0.5) / W * CONFIG.interaction.parallax * DPR;
+            const pY = (mouse.y - H * 0.5) / H * CONFIG.interaction.parallax * DPR;
+
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].step(now * 0.001, pX, pY);
+                stars[i].draw(ctx);
+            }
+
+            scheduleMeteors(dt);
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                m.step(dt);
+                m.draw(ctx);
+                if (!m.alive) meteors.splice(i, 1);
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        function updatePointer(clientX, clientY) {
+            mouse.x = clientX * DPR;
+            mouse.y = clientY * DPR;
+            mouse.has = true;
+        }
+
+        window.addEventListener('mousemove', e => updatePointer(e.clientX, e.clientY));
+        window.addEventListener('touchmove', e => {
+            if (e.touches && e.touches[0]) updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        document.addEventListener('visibilitychange', () => { lastT = performance.now(); });
+
+        // Inicialización
+        resize();
+        lastT = performance.now();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
