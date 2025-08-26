@@ -1,155 +1,147 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fondo Estrellado DeepStick</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DeepStick - Acceso Exclusivo</title>
     <style>
-        /* Estilos base */
-        body, html {
+        html, body {
             margin: 0;
-            padding: 0;
-            width: 100%;
             height: 100%;
+            background: #000;
             overflow: hidden;
-            font-family: 'Arial', sans-serif;
         }
-        
-        /* Contenedor principal */
-        .container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1; /* Coloca el fondo detrás de todo */
-        }
-        
-        /* Canvas para el fondo estrellado */
         #sky {
-            display: block;
+            position: fixed;
+            inset: 0;
             width: 100%;
             height: 100%;
+            display: block;
+            background: radial-gradient(1200px 800px at 50% 60%, #02030a 0%, #000 60%);
+        }
+
+        /* Contenedor del mensaje y botón */
+        .access-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Texto DeepStick */
-        .site-title {
-            position: absolute;
+        .access-panel h2 {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+        
+        .access-btn {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .access-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #ff4b2b, #ff416c);
+        }
+
+        /* Nombre llamativo */
+        #header {
+            position: fixed;
             top: 30px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
-            z-index: 2;
+            z-index: 10;
+        }
+        #header h1 {
+            font-size: 5rem;
             font-family: 'Impact', 'Arial Black', sans-serif;
             font-weight: 900;
-            font-size: 5rem;
+            margin: 0;
             color: white;
             -webkit-text-stroke: 2px black;
-            text-shadow: 
+            text-shadow:
                 0 0 10px red,
                 0 0 20px blue,
                 0 0 40px red,
                 0 0 60px blue;
             animation: flame 1.5s infinite alternate;
-            pointer-events: none;
         }
-        
         @keyframes flame {
-            0% { 
-                text-shadow:
-                    0 0 10px red,
-                    0 0 20px blue,
-                    0 0 40px red,
-                    0 0 60px blue; 
-            }
-            100% { 
-                text-shadow:
-                    0 0 15px orange,
-                    0 0 25px deepskyblue,
-                    0 0 50px red,
-                    0 0 80px blue; 
-            }
+            0% { text-shadow:
+                0 0 10px red,
+                0 0 20px blue,
+                0 0 40px red,
+                0 0 60px blue; }
+            100% { text-shadow:
+                0 0 15px orange,
+                0 0 25px deepskyblue,
+                0 0 50px red,
+                0 0 80px blue; }
         }
-        
-        /* Botón de ejemplo */
-        .floating-button {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-        
-        .floating-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(to right, #ff4b2b, #ff416c);
-        }
-        
-        /* Mensaje instructivo */
-        .instructions {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 300px;
-            font-size: 14px;
-            z-index: 90;
-        }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
-            .site-title {
+            #header h1 {
                 font-size: 3rem;
             }
             
-            .floating-button {
-                bottom: 20px;
-                right: 20px;
-                padding: 14px 26px;
-                font-size: 16px;
+            .access-panel h2 {
+                font-size: 1.4rem;
             }
             
-            .instructions {
-                bottom: 80px;
-                left: 10px;
-                right: 10px;
-                max-width: none;
+            .access-btn {
+                padding: 12px 25px;
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Contenedor del fondo -->
-    <div class="container">
-        <canvas id="sky"></canvas>
-        <div class="site-title">DeepStick</div>
+    <canvas id="sky"></canvas>
+
+    <!-- Nombre fijo arriba en el centro -->
+    <header id="header">
+        <h1>DeepStick</h1>
+    </header>
+
+    <!-- Panel de acceso -->
+    <div class="access-panel">
+        <h2>Esta web es únicamente para usuarios de DeepStick. Se utiliza como fuente de actualización y descargas de nuevas APKs. Debes iniciar sesión para seguir.</h2>
+        <button class="access-btn" onclick="redirectToGoogleSites()">Iniciar Sesión</button>
     </div>
-    
-    <!-- Botón flotante -->
-    <button class="floating-button" onclick="alert('¡Botón funcional!')">Mi Botón</button>
-    
-    <!-- Instrucciones -->
-    <div class="instructions">
-        <strong>Para usar en Google Sites:</strong> Inserta este código como HTML embebido y colócalo en una sección completa.
-    </div>
+
+    <noscript>
+        <div style="color:white;text-align:center;margin-top:50px;">
+            Este fondo requiere JavaScript para mostrar estrellas fugaces ✨
+        </div>
+    </noscript>
 
     <script>
         // ————————————————————————————————————————————————
-        // Código del cielo estrellado con estrellas fugaces
+        // Código completo del cielo estrellado con estrellas fugaces
         // ————————————————————————————————————————————————
+
         const CONFIG = {
             starLayers: [
                 { countPerMP: 120, size: [0.6, 1.0], speed: 0.02, twinkle: [0.2, 0.7] },
@@ -377,6 +369,12 @@
             mouse.x = clientX * DPR;
             mouse.y = clientY * DPR;
             mouse.has = true;
+        }
+
+        // Función para redirigir a Google Sites
+        function redirectToGoogleSites() {
+            // Cambia esta URL por la de tu Google Sites
+            window.location.href = "https://sites.google.com";
         }
 
         window.addEventListener('mousemove', e => updatePointer(e.clientX, e.clientY));
